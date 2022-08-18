@@ -7,6 +7,12 @@ it('checks the requests that never finish', () => {
   // Please set up an intercept that confirms the request
   // happens, but there is no server response
   // https://on.cypress.io/intercept
+  const requestStarted = cy.stub().as('requestStarted')
+  const requestFinished = cy.stub().as('requestFinished')
+  cy.intercept('GET', '/fruit-long', (req) => {
+    requestStarted()
+    req.continue(requestFinished)
+  }).as('fruit-long')
   //
   // Tip: you can call separate stubs
   // one stub should be called when the request is made
@@ -15,10 +21,13 @@ it('checks the requests that never finish', () => {
   //
   // Give the intercept an alias "fruit-long"
   // visit the page "no-end.html"
+  cy.visit('no-end.html')
   //
   // we cannot wait for the network call - it never finishes
   // cy.wait('@fruit-long', { timeout: 1000 })
   //
   // instead we can check if the stub was called on the way out
   // but the stub was never called when the request finished
+  cy.get('@requestStarted').should('have.been.called')
+  cy.get('@requestFinished').should('not.have.been.called')
 })
