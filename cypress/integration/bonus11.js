@@ -12,6 +12,18 @@ before(() => {
   // and extract the custom font URL. Store the URL in the fonts object
   // using https://on.cypress.io/wrap
   // confirm the "fontUrl" property has been set
+  cy.request(
+    'https://fonts.googleapis.com/css2?family=Satisfy&display=swap',
+  )
+    .its('body')
+    .then((body) => {
+      const matches = body.match(
+        /url\((?<fontUrl>[\:\.\/a-zA-Z0-9]+)\)/,
+      )
+      fonts.fontUrl = matches.groups.fontUrl
+    })
+
+  cy.wrap(fonts).its('fontUrl').should('not.be.empty')
 })
 
 it(
@@ -26,33 +38,40 @@ it(
     // intercept the font request and slow it down by two seconds
     // by returning a delayed promise
     // https://on.cypress.io/intercept
-    //
-    // give the intercept an alias "font"
-    // using the cy.then callback, disable the network caching
-    //
-    // Note: this automation command will only work in the Chrome-based browsers
-    // like Electron, Chrome, Edge (new version)
-    // and will not work in Firefox
-    //
-    // disable the network caching which does not let the cached font request
-    // to get out of the (Chrome) browser and into our Cypress network proxy layer
-    // https://glebbahmutov.com/blog/cypress-automation/
-    // we are going to use the following Chrome Debugger Protocol method
-    // https://chromedevtools.github.io/devtools-protocol/tot/Network/#method-setCacheDisabled
-    // which is equivalent to the checkbox "Disable cache" in the Network tab
-    //
-    // return Cypress.automation(
-    //   'remote:debugger:protocol',
-    //   {
-    //     command: 'Network.setCacheDisabled',
-    //     params: {
-    //       cacheDisabled: true,
-    //     },
-    //   },
-    // )
-    //
+    cy.intercept(fonts.fontUrl, (req) =>
+      Cypress.Promise.delay(2000),
+    )
+      .as('font')
+      .then(() => {
+        //
+        // give the intercept an alias "font"
+        // using the cy.then callback, disable the network caching
+        //
+        // Note: this automation command will only work in the Chrome-based browsers
+        // like Electron, Chrome, Edge (new version)
+        // and will not work in Firefox
+        //
+        // disable the network caching which does not let the cached font request
+        // to get out of the (Chrome) browser and into our Cypress network proxy layer
+        // https://glebbahmutov.com/blog/cypress-automation/
+        // we are going to use the following Chrome Debugger Protocol method
+        // https://chromedevtools.github.io/devtools-protocol/tot/Network/#method-setCacheDisabled
+        // which is equivalent to the checkbox "Disable cache" in the Network tab
+        //
+        return Cypress.automation(
+          'remote:debugger:protocol',
+          {
+            command: 'Network.setCacheDisabled',
+            params: {
+              cacheDisabled: true,
+            },
+          },
+        )
+      })
     // visit the page "/fancy.html"
+    cy.visit('/fancy.html')
     //
     // wait for the font resource to load
+    cy.wait('@font')
   },
 )

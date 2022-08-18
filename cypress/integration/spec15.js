@@ -1,13 +1,34 @@
 /// <reference types="cypress" />
-
+import { recurse } from 'cypress-recurse'
 it('finds all fruits', () => {
+  const fruits = new Set()
+  function fruitIsDuplicate() {
+    cy.get('#fruit')
+      .should('not.contain.text', 'loading')
+      .invoke('text')
+      .then((fruit) => {
+        if (fruits.has(fruit)) {
+          cy.log(`We have ${fruit} already`)
+          const list = [...fruits].sort()
+          cy.log(list.join(', '))
+          expect(list).to.have.length(5)
+        } else {
+          fruits.add(fruit)
+          cy.log(fruit)
+          cy.wait(500)
+          cy.reload().then(fruitIsDuplicate)
+        }
+      })
+  }
   // visit the page
+  cy.visit('/')
   // keep getting the fruit from the page
   // and storing it in a Set object
   // and reloading the page
   // until we see the fruit we have already added
   // print the collected list of fruits
   // check its length against the expected value
+  fruitIsDuplicate()
 })
 
 // Bonus 2: use cypress-recurse to find all fruits
@@ -25,6 +46,7 @@ it('finds all the fruit using cypress-recurse', () => {
   // https://on.cypress.io/visit
   // keep track of the fruits we have seen
   // using a Set object
+  cy.visit('/')
   //
   // call the recurse function
   // first argument is a function that gets
@@ -35,6 +57,34 @@ it('finds all the fruit using cypress-recurse', () => {
   // that can have "post" method that gets called
   // where we add the fruit to the Set object
   // and reload the page
+  recurse(
+    () => {
+      return cy
+        .get('#fruit')
+        .should('not.contain.text', 'loading')
+        .invoke('text')
+    },
+    (fruit, fruits) => fruits.has(fruit),
+    {
+      log: false,
+      limit: 10,
+      timeout: 10_000,
+      reduceFrom: new Set(),
+      reduce(fruits, fruit) {
+        fruits.add(fruit)
+      },
+      yield: 'reduced',
+      post: ({ value }) => {
+        cy.log(value)
+        cy.reload()
+      },
+    },
+  ).then((fruits) => {
+    const list = [...fruits].sort()
+    cy.log('Found all fruits!')
+    cy.log(list.join(','))
+    expect(list).to.have.length(5)
+  })
   //
   // the "recurse" from cypress-recurse
   // is chainable, so we can chain a ".then" callback

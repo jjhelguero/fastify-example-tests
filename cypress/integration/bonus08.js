@@ -5,8 +5,15 @@ it('redirects the image to another image URL', () => {
   // and return an object with the status code 302 (moved temporarily)
   // and the headers object with location "/bunny.png"
   // https://on.cypress.io/intercept
+  cy.intercept('GET', '/tiger.png', {
+    statusCode: 302,
+    headers: {
+      location: '/bunny.png',
+    },
+  })
   //
   // visit the page "/tiger.html"
+  cy.visit('/tiger.html')
   // there is a "tiger" image on the page
   // which you can check using the cy.get command
   // but the tiger image is really the bunny image
@@ -14,14 +21,21 @@ it('redirects the image to another image URL', () => {
   // by getting the DOM element and its "naturalHeight" property
   // https://on.cypress.io/its
   // the bunny.png the height is 937 pixels
+  cy.get('img[src="tiger.png"]')
+    .its('0.naturalHeight')
+    .should('eq', 937)
 })
 
 it('returns a fixture image', () => {
   // intercept the GET request to "/tiger.png" image
   // and return a fixture image "bunny.png"
   // https://on.cypress.io/intercept
+  cy.intercept('GET', '/tiger.png', {
+    fixture: 'bunny.png',
+  })
   //
   // visit the page "/tiger.html"
+  cy.visit('/tiger.html')
   // there is a "tiger" image on the page
   // which you can check using the cy.get command
   // but the tiger image is really the bunny image
@@ -29,4 +43,7 @@ it('returns a fixture image', () => {
   // by getting the DOM element and its "naturalHeight" property
   // https://on.cypress.io/its
   // the bunny.png the height is 937 pixels
+  cy.get('img[src="tiger.png"]')
+    .its('0.naturalHeight')
+    .should('eq', 937)
 })

@@ -5,6 +5,14 @@ it('changes the loaded CSS resource', () => {
   // using https://on.cypress.io/intercept
   // let the request continue to the server
   // and get the response back.
+  cy.intercept('GET', 'style.css', (req) => {
+    delete req.headers['if-none-match']
+    delete req.headers['if-modified-since']
+
+    req.continue((res) => {
+      res.body += '\n#fruit { border: 1px solid red; }'
+    })
+  }).as('style')
   //
   // Note: the CSS resources are cached by the browser
   // thus before the request is made, remove the
@@ -17,6 +25,10 @@ it('changes the loaded CSS resource', () => {
   // Give the network intercept an alias.
   //
   // visit the page
+  cy.visit('/')
+  cy.wait('@style')
+    .its('response.statusCode')
+    .should('eq', 200)
   // Confirm the intercept worked
   // and its response status code was 200
   // and not 304 (Not Modified)
@@ -26,4 +38,7 @@ it('changes the loaded CSS resource', () => {
   // the element should have CSS border
   // because the width might be a float
   // just confirm it is a solid red line
+  cy.get('#fruit')
+    .should('have.css', 'border')
+    .should('include', 'solid rgb(255, 0, 0)')
 })

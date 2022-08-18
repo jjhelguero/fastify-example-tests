@@ -7,12 +7,19 @@ it('successfully completes every network request', () => {
   // 2xx or 3xx code. In our application, the response codes
   // are limited to 200 (success) and 304 (not modified)
   // https://on.cypress.io/intercept
+  cy.intercept('*', (req) => {
+    req.continue(res => {
+      expect(res.statusCode, 'status code').to.be.oneOf([200,304])
+    })
+  })
   //
   // visit the page using https://on.cypress.io/visit
   // in the Cypress command log observe the network requests
   // notice they are all successful
+  cy.visit('/')
   //
   // reload the page to see the same behavior
   // and possible the 304 (not modified) status codes
   // https://on.cypress.io/reload
+  cy.reload()
 })

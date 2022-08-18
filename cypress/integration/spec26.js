@@ -1,6 +1,15 @@
 /// <reference types="cypress" />
 
 it('makes multiple separate requests', () => {
+  cy.request('/fruit')
+    .its('body.fruit')
+    .then((fruit1) => {
+      cy.request('/fruit')
+        .its('body.fruit')
+        .then((fruit2) => {
+          expect(fruit1).to.not.equal(fruit2)
+        })
+    })
   // make the first request to fetch the fruit
   // using https://on.cypress.io/request
   // make the second request to fetch the fruit again
@@ -20,4 +29,11 @@ it('store multiple responses as aliases', () => {
   // to be able to access both fruits using
   // "this.fruit1" and "this.fruit2" variables
   // and confirm they are different
+  cy.request('/fruit').its('body.fruit').as('fruit1')
+  cy.request('/fruit')
+    .its('body.fruit')
+    .as('fruit2')
+    .then(function () {
+      expect(this.fruit1).to.not.equal(this.fruit2)
+    })
 })

@@ -3,6 +3,22 @@
 it('requests an image and gets its dimensions', () => {
   // request the image ourselves using cy.request command
   // with the "encoding: base64" option
+  cy.request({
+    url: '/tiger.png',
+    encoding: 'base64',
+  }).then(({ body, headers }) => {
+    const mime = headers['content-type']
+    const dataUrl = `data:${mime};base64,${body}`
+    const image = document.createElement('img')
+    image.src = dataUrl
+    cy.wait(100).then(() => {
+      expect(image).to.have.property(
+        'naturalHeight',
+        914,
+        'image height',
+      )
+    })
+  })
   //
   // from the response get the body and the headers fields
   // from the headers object, grab the "content-type" header

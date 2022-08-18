@@ -6,12 +6,24 @@ it('does not intercept the requests made using cy.request', () => {
   // set up the intercept and make the cy.request call
   cy.intercept('GET', '/fruit', cy.spy().as('getFruit'))
   // Confirm the cy.intercept does not "see" cy.request network calls
+  cy.request('/fruit')
+  cy.get('@getFruit').should('not.have.been.called')
 })
 
 it('catches the request made by the test using fetch', () => {
   // The test itself can use the "fetch" to make network calls
   // Use "fetch" instead ot request to make a network call
   // and confirm that cy.intercept does "see" the network call
+  cy.intercept('/fruit')
+    .as('getFruit')
+    .then(() => {
+      fetch('/fruit')
+        .then((r) => r.json())
+        .then((body) => {
+          expect(body).to.have.property('fruit')
+        })
+    })
+  cy.wait('@getFruit').its('response.body')
   //
   // set up the intercept
   // make the fetch call and confirm the response body
@@ -28,6 +40,11 @@ it('waits for the fetch to finish using cy.wrap command', () => {
   // around the promise returned by the "fetch"
   // from the response, get the json by invoking the "json" method
   // confirm the body has the property "fruit"
+  cy.intercept('/fruit').then(() => {
+    cy.wrap(fetch('/fruit'))
+      .invoke('json')
+      .should('have.a.property', 'fruit')
+  })
 })
 
 it('invokes window.fetch using the cy.invoke command', () => {
@@ -39,4 +56,13 @@ it('invokes window.fetch using the cy.invoke command', () => {
   // invoke the method "json" on the response
   // and confirm the body has the property "fruit"
   // from the intercept get the fruit and confirm the "fetch" response body
+  cy.intercept('GET', '/fruit').as('getFruit')
+  cy.window()
+    .invoke('fetch', '/fruit')
+    .invoke('json')
+    .then((body) => {
+      cy.wait('@getFruit')
+        .its('response.body')
+        .should('deep.equal', body)
+    })
 })

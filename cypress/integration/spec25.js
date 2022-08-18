@@ -44,7 +44,10 @@ beforeEach(() => {
 it('validates the server response using OpenAPI spec', () => {
   // visit the site, reload several times, and confirm the response is valid
   cy.visit('/')
+  Cypress._.times(3, () => {
+    cy.reload()
+    cy.contains('#fruit', /^[A-Z]/)
+  })
   // Note: make sure the page shows a fruit
   // otherwise the error in the intercept might be silently swallowed
-  cy.contains('#fruit', /^[A-Z]/)
 })
