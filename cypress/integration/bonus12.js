@@ -6,8 +6,8 @@ it('saves the intercepted network response', () => {
   // https://on.cypress.io/intercept
   // and print the server response using "cy.log" command
   // https://on.cypress.io/log
-  cy.intercept('GET','/fruit', (req) => {
-    req.continue(res => {
+  cy.intercept('GET', '/fruit', (req) => {
+    req.continue((res) => {
       response = res.body
     })
   }).as('fruits')

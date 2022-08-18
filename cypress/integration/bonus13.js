@@ -16,7 +16,7 @@ describe('difference between req.reply and req.continue', () => {
     // { fruit: 'crab apple' }
     cy.intercept('GET', '/fruit', (req) => {
       req.reply({
-        fruit
+        fruit,
       })
     }).as('fruit')
     // visit the home page using https://on.cypress.io/visit
@@ -46,13 +46,11 @@ describe('difference between req.reply and req.continue', () => {
     // you can implement the response logic in the route handler
     // https://on.cypress.io/intercept
     // save the intercept under an alias "fruit"
-    cy.intercept('GET','/fruit', (req) => {
+    cy.intercept('GET', '/fruit', (req) => {
       count += 1
-      if (count % 2 === 0){
-        req.reply({fruit:'melon'})
-      } else (
-        req.reply({fruit:'kiwi'})
-      )
+      if (count % 2 === 0) {
+        req.reply({ fruit: 'melon' })
+      } else req.reply({ fruit: 'kiwi' })
     }).as('fruit')
     //
     // visit the home page using https://on.cypress.io/visit
@@ -83,10 +81,11 @@ describe('difference between req.reply and req.continue', () => {
     // with a callback to get the server response
     // https://on.cypress.io/intercept
     cy.intercept('GET', '/fruit', (req) => {
-      req.continue(res => {
+      req.continue((res) => {
         expect(res).to.have.property('statusCode', 200)
         expect(res.body).to.have.property('fruit')
-        fruitSent = res.body.fruit = res.body.fruit.toUpperCase()
+        fruitSent = res.body.fruit =
+          res.body.fruit.toUpperCase()
       })
     }).as('fruit')
     //
@@ -103,12 +102,13 @@ describe('difference between req.reply and req.continue', () => {
     //
     // visit the home page using https://on.cypress.io/visit
     cy.visit('/')
-    cy.wait('@fruit')
-      .then(() => {
-        expect(fruitSent).to.be.a('string', 'got a string').and.match(/^[A-Z]+$/, 'all uppercase')
+    cy.wait('@fruit').then(() => {
+      expect(fruitSent)
+        .to.be.a('string', 'got a string')
+        .and.match(/^[A-Z]+$/, 'all uppercase')
 
-        cy.contains('#fruit', fruitSent)
-      })
+      cy.contains('#fruit', fruitSent)
+    })
     //
     // wait for the network intercept "fruit" to finish
     //

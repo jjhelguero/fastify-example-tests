@@ -8,8 +8,10 @@ it('successfully completes every network request', () => {
   // are limited to 200 (success) and 304 (not modified)
   // https://on.cypress.io/intercept
   cy.intercept('*', (req) => {
-    req.continue(res => {
-      expect(res.statusCode, 'status code').to.be.oneOf([200,304])
+    req.continue((res) => {
+      expect(res.statusCode, 'status code').to.be.oneOf([
+        200, 304,
+      ])
     })
   })
   //

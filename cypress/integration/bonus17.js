@@ -8,6 +8,12 @@ it('fetches all fruits using cy.request and checks the first one', () => {
   // https://on.cypress.io/should
   // https://glebbahmutov.com/cypress-examples/commands/assertions.html
   // and it should not be empty
+  cy.request('/all-fruits')
+    .its('body')
+    .should('be.an', 'array')
+    .and('not.be.empty')
+    .its('0.fruit')
+    .should('eq', 'Apples')
   //
   // get the first element's "fruit" property
   // using https://on.cypress.io/its command
@@ -24,6 +30,13 @@ it('checks that each fruit follows the schema', () => {
   // 2. the "k" value should be a number
   // 3. the "fruit" value should be a string
   // tip: https://on.cypress.io/each
+  cy.request('/all-fruits')
+    .its('body')
+    .each((item) => {
+      expect(item).to.have.keys('k', 'fruit')
+      expect(item.k).to.be.a('number')
+      expect(item.fruit).to.be.a('string')
+    })
 })
 
 it('saves the response under an alias', () => {
@@ -43,4 +56,18 @@ it('saves the response under an alias', () => {
   // simply use cy.get('@fruits') to get the aliased value
   // get the aliased value "@fruits" and confirm it is an array
   // get the aliased value "@fruits" and confirm it has more than 3 items
+  cy.request('/all-fruits')
+    .should('be.an', 'object')
+    .and('include.keys', [
+      'status',
+      'body',
+      'duration',
+      'headers',
+    ])
+    .its('body')
+    .as('fruits')
+
+  cy.get('@fruits')
+    .should('be.an', 'array')
+    .and('have.length.be.greaterThan', 3)
 })
