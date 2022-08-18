@@ -20,22 +20,49 @@ it('waits for the last network call', () => {
   // it should always have status code 200
   // and the body { ok: true }
   // Give the intercept the alias "track"
+  cy.intercept('POST', '/track', req => {
+    req.continue(res => {
+      expect(res.statusCode).to.eq(200)
+      expect(res.body, 'body').to.deep.equal({ ok: true })
+    })
+  }).as('track')
   //
   // now visit the /calculator.html page
   // confirm the h1 element has the text "Calculator"
   // https://on.cypress.io/contains
+  cy.visit('/calculator.html')
+  cy.contains('h1', 'Calculator')
   //
   // wait for the "track" alias and confirm the request
   // https://on.cypress.io/wait
   // https://on.cypress.io/its
   // Tip: you can use "deep.equal" assertion
   // https://glebbahmutov.com/cypress-examples/commands/assertions.html
+  cy.wait('@track')
+    .its('request.body')
+    .should('deep.equal', {
+      eventName: 'load',
+      args: {}
+    })
   //
   // Enter two numbers into the input fields
   // https://on.cypress.io/get
   // https://on.cypress.io/type
   // Click the plus button
   // https://on.cypress.io/click
+  cy.get('#num1')
+    .should('be.visible')
+    .and('be.enabled')
+    .type('2')
+  cy.get('#num2')
+    .should('be.visible')
+    .and('be.enabled')
+    .type('3')
+  cy.intercept('POST', '/track').as('lastTrack')
+  cy.get('#add')
+    .should('be.visible')
+    .and('be.enabled')
+    .click()
   //
   // how do you confirm the /track request was made
   // with event name "+" and your input arguments?
@@ -49,4 +76,13 @@ it('waits for the last network call', () => {
   //
   // wait for the "lastTrack" alias and confirm the request body
   // Note: the response will still be confirmed by the "track" intercept
+  cy.wait('@lastTrack')
+    .its('request.body')
+    .should('deep.equal', {
+      eventName: '+',
+      args: {
+        a: 2,
+        b: 3
+      }
+    })
 })
