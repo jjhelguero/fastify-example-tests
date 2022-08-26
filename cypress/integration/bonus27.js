@@ -13,6 +13,15 @@ function ping(url, n = 5) {
   // first command yielded ok status code
   // 3: the options object with the number of attempts
   // and the delay between attempts
+  recurse(
+    () => cy.window().invoke('fetch', url).its('ok'),
+    Cypress._.identity,
+    {
+      delay: 500,
+      log: `${url} is good`,
+      limit: n
+    }
+  )
   //
   // Tip: remember you cannot simply use the cy.request
   // command since it is "invisible" to the cy.intercept
@@ -21,13 +30,26 @@ function ping(url, n = 5) {
 it('retries pinging the server using cypress-recurse', () => {
   // stub the GET / endpoint to return an error 3 times
   // https://on.cypress.io/intercept
+  cy.intercept(
+    {
+      method: 'GET',
+      url: '/',
+      times: 3,
+    },
+    {
+      statusCode: 500,
+    },
+  )
   //
   // ping the / endpoint 5 times or until it responds
   // by calling the ping function
+  ping('/', 5)
   //
   // now that the server responds, visit the "/"
   // https://on.cypress.io/visit
+  cy.visit('/')
   //
   // confirm the page loads by checking H1 text
   // https://on.cypress.io/contains
+  cy.contains('h1',/\w/)
 })
