@@ -7,23 +7,48 @@
 
 // https://github.com/bahmutov/cy-spok
 // install the plugin using "npm i -D cy-spok"
-// import spok from 'cy-spok'
+const spok = require('cy-spok')
 
 it('checks the request and response objects using cy-spok', () => {
   // visit the "/calculator.html" page
   // https://on.cypress.io/visit
+  cy.visit('/calculator.html')
   //
   // get the first number input element and type 5
   // https://on.cypress.io/get
   // https://on.cypress.io/type
   // get the second input element and type 2
+  cy.get('#num1').type(5)
+  cy.get('#num2').type(2)
   //
   // intercept the POST /calculate requests
   // https://on.cypress.io/intercept
   // and give it an alias "calculate"
+  cy.intercept('POST', '/calculate').as('calculate')
   //
   // get the "Add" button and click it
   // https://on.cypress.io/click
+  cy.get('#add').click()
+  cy.wait('@calculate')
+    .should(spok({
+      request: {
+        method: 'POST',
+        body: { 
+          a: 5, 
+          b: spok.number,
+          operation: spok.test(/\+|-/)
+        },
+      },
+      response: {
+        statusCode: 200,
+        body: { 
+          a: 5, 
+          b: 2, 
+          answer: 7,
+          operation: '+'
+        }
+      }
+    }))
   //
   // wait for the "calculate" request to be made
   // and assert the request and response fields
@@ -41,6 +66,28 @@ it('checks the request and response objects using cy-spok', () => {
   // https://on.cypress.io/get
   // https://on.cypress.io/its
   // use assertions "deep.include" and "deep.equal"
+  cy.get('@calculate')
+    .its('request')
+    .should('have.a.property', 'method', 'POST')
+  cy.get('@calculate')
+    .its('request.body')
+    .should('deep.equal', {
+      a: 5, 
+      b: 2,
+      operation: '+'
+    })
+
+  cy.get('@calculate')
+    .its('response')
+    .should('have.a.property', 'statusCode', 200)
+  cy.get('@calculate')
+    .its('response.body')
+    .should('deep.equal', { 
+      a: 5, 
+      b: 2, 
+      answer: 7,
+      operation: '+'
+    })
   //
   // Tip: to see the entire object in the command log,
   // increase the Chai assertion truncate length in the spec
