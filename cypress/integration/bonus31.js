@@ -25,6 +25,10 @@ it('retries until the network intercepts sees the right data', () => {
   // a "should(callback)" does retry until
   // it times out or the assertions inside the "should(callback)"
   // all pass
+  cy.wrap(null, {timeout: 30_000}).should(() => {
+    expect(data).to.be.an('object')
+    expect(data).to.have.property('n', 7)
+  })
   //
   // confirm the "data" variable is an object
   // confirm its has the property "n: 7"
@@ -33,4 +37,5 @@ it('retries until the network intercepts sees the right data', () => {
   // the page is showing 7 immediately
   // which we can verify using cy.contains with {timeout: 30} option
   // Tip: we are using 30ms to let the page update itself
+  cy.contains('#number', 7, {timeout: 30}).should('be.visible')
 })
