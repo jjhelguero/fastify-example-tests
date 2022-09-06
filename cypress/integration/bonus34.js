@@ -58,6 +58,7 @@ it('adds a new item and then finds it (retries the API calls)', function () {
   // to format the elapsed duration when forming the string
   // Also set the "postLastValue: true" to get a "post" call
   // on the successful network call response
+  const delay = Cypress.config('isInteractive') ? 5_000 : 30_000
   recurse(
     () =>
       cy.request({
@@ -67,8 +68,13 @@ it('adds a new item and then finds it (retries the API calls)', function () {
     (response) => response.isOkStatusCode,
     {
       log: '✅ item is in our database',
-      delay: 10_000,
+      delay,
       timeout: 60_000,
+      postLastValue: true,
+      post ({ success, elapsed} ) {
+        const msg = success ? '✅ found item in DB' : 'searching for item in DB'
+        cy.task('print', msg + ' after ' + humanizeDuration(elapsed, {round: true}))
+      }
     },
   )
   // call the search API until it finds the item
@@ -95,8 +101,13 @@ it('adds a new item and then finds it (retries the API calls)', function () {
     (response) => response.isOkStatusCode,
     {
       log: '✅ item has been scraped',
-      delay: 10_000,
+      delay,
       timeout: 60_000,
+      postLastValue: true,
+      post ({ success, elapsed} ) {
+        const msg = success ? '✅ found item in search service' : 'searching'
+        cy.task('print', msg + ' after ' + humanizeDuration(elapsed, {round: true}))
+      }
     },
   )
 
