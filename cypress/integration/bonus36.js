@@ -24,4 +24,16 @@ it('waits for an optional network call', () => {
   // sends "a: 1, b: 2" values
   // You can test the wait by clicking the "+" button yourself
   // while the test is running, or by letting it time out
+  cy.waitIfHappens('@calculate',20_000).then(intercept => {
+    if(!intercept) {
+      cy.log('No request')
+    } else {
+      cy.wrap(intercept)
+      .its('request.body')
+      .should('deep.include', {
+        a: 1,
+        b: 2
+      })
+    }
+  })
 })
