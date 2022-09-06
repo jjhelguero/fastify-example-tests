@@ -39,18 +39,24 @@ it('adds a new item and then finds it (static wait)', function () {
   // wait for the item to be added to the database (one minute)
   // plus for the search service to scrape it (another minute)
   // https://on.cypress.io/wait
+  cy.wait(120_000)
   //
   // let's find the item using the search page "/find-item.html"
   // https://on.cypress.io/visit
+  cy.visit('/find-item.html')
   //
   // because we use the "function () { ... }" callback syntax
   // we can access the aliased value using "this.<alias>" syntax
   // Enter the item's name into the <input id="item-text">
   // input box and press Enter key
+  cy.get('#item-text').type(this.name + '{enter}')
   //
   // check if the item is found by looking at the "id=output" element
   // also confirm the displayed price is correct
   // https://on.cypress.io/contains
+  cy.contains('#output',this.name)
+    .contains('.price', this.price)
+    .should('be.visible')
 })
 
 it('adds a new item and then finds it (retries the search)', function () {
@@ -64,6 +70,7 @@ it('adds a new item and then finds it (retries the search)', function () {
   //
   // let's find the item using the search page "/find-item.html"
   // https://on.cypress.io/visit
+  cy.visit('/find-item.html')
   //
   // let's retry entering the item's name using the "recurse" function
   // https://github.com/bahmutov/cypress-recurse
@@ -80,9 +87,25 @@ it('adds a new item and then finds it (retries the search)', function () {
   // Stop iterating if the item is found
   // If the item is not found, wait 10 seconds and try again
   // Repeat UP to 120 seconds
+  recurse(
+    () => {
+      cy.get('#item-text').clear().blur()
+      cy.get('#item-text').type(this.name + '{enter}')
+      return cy.contains('#output',this.name).should(Cypress._.noop)
+    },
+    ($el) => $el.length > 0,
+    {
+      delay: 10_000,
+      timeout: 120_000,
+      log: 'item found'
+    }
+  )
   //
   // check the item is found for sure
   // https://on.cypress.io/contains
+  cy.contains('#output',this.name)
+    .contains('.price', this.price)
+    .should('be.visible')
 })
 
 it('adds a new item and then finds it (retries the API calls)', function () {
@@ -94,6 +117,20 @@ it('adds a new item and then finds it (retries the API calls)', function () {
   // if the request is successful, stop
   // otherwise, wait 10 seconds and try again
   // Keep querying up to 1 minute
+  recurse(
+    () => {
+      return cy.request({
+        url: `/items/${encodeURIComponent(this.name)}`,
+        failOnStatusCode: false
+      })
+    },
+    (res) => res.isOkStatusCode,
+    {
+      delay: 10_000,
+      timeout: 60_000,
+      log: 'item in DB'
+    }
+  )
   //
   // call the search API until it finds the item
   cy.log('**call the search API**')
@@ -103,15 +140,36 @@ it('adds a new item and then finds it (retries the API calls)', function () {
   // if the request is successful, stop
   // otherwise, wait 10 seconds and try again
   // Keep querying up to 1 minute
+  recurse(
+    () => {
+      return cy.request({
+        url: `/find-item/${encodeURIComponent(this.name)}`,
+        failOnStatusCode: false
+      })
+    },
+    (res) => res.isOkStatusCode,
+    {
+      delay: 10_000,
+      timeout: 60_000,
+      log: 'item is scrapped'
+    }
+  )
   //
   cy.log('**use the UI to find the scraped item**')
   // now visit the /find-item.html page
+  cy.visit('/find-item.html')
   //
   // enter the item's name and press Enter
   // https://on.cypress.io/get
   // https://on.cypress.io/type
+  cy.get('#item-text').clear().blur()
+  cy.get('#item-text').type(this.name + '{enter}')
+
   //
   // the item _must_ be found now
   // check the item is found for sure
   // https://on.cypress.io/contains
+  cy.contains('#output',this.name)
+    .contains('.price', this.price)
+    .should('be.visible')
 })
