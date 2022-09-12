@@ -46,9 +46,21 @@ it('waits for the last network call using cypress-wait-if-happens', () => {
   // confirm the call as made by looking at the page
   // and finding the displayed answer 26
   // https://on.cypress.io/contains
+  cy.contains('#answer', '26')
   //
   // now grab the latest call for alias "@track"
   // using cy.waitIfHappens with lastCall: true option
+  cy.waitIfHappens({
+    alias: '@track',
+    lastCall: true,
+  }).its('request.body')
+  .should('deep.equal', {
+    eventName: '+',
+    args: {
+      a: 20,
+      b: 6
+    }
+  })
   //
   // from the yielded intercept
   // grab the request.body and confirm
