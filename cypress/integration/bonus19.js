@@ -86,3 +86,5 @@ it('waits for the last network call', () => {
       }
     })
 })
+
+// Alternative: see Bonus lesson 37
