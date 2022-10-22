@@ -25,7 +25,21 @@ it('checks the intercept status code', () => {
 // and yield the response body property
 // Tip: all the inner commands should log nothing
 // but you can use cy.log to log the network alias
-Cypress.Commands.add('waitForSuccess', (alias) => {})
+Cypress.Commands.add('waitForSuccess', (alias) => {
+  cy.log(`**${alias}**`)
+  return (
+    cy
+      .wait(alias, { log: false })
+      .its('response', { timeout: 0, log: false })
+      .then((res) => {
+        expect(res, 'status code')
+          .to.have.property('statusCode')
+          .and.to.be.oneOf([200, 304])
+      })
+      // we should yield the response body property
+      .its('body', { timeout: 0, log: false })
+  )
+})
 
 // the same test using cy.waitForSuccess command
 // instead of cy.wait
@@ -37,5 +51,5 @@ it('waits for success', () => {
   cy.waitForSuccess('@app')
   cy.waitForSuccess('@main')
   // uncomment to see the test fail on 404 status code
-  cy.waitForSuccess('@bundle')
+  // cy.waitForSuccess('@bundle')
 })
