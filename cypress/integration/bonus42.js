@@ -14,11 +14,23 @@ it('makes a multipart/form-data cy.request', () => {
   // encode the input fields into the body to be sent
   // need both the body and the content type header
   // using the helper function "encodeMultiPart"
+  const { body, contentType } = encodeMultiPart(fields)
   //
   // make a POST request using https://on.cypress.io/request
   // to the endpoint "/submit-form"
   // with the right content type header
   // and the multipart body text
+  cy.request({
+    method: 'POST',
+    url: '/submit-form',
+    headers: {
+      'content-type': contentType
+    },
+    body
+  }).its('body')
+    .then(html => {
+      cy.document().invoke('write', html)
+    })
   //
   // from the response, grab the HTML body string
   // https://on.cypress.io/its
@@ -30,6 +42,9 @@ it('makes a multipart/form-data cy.request', () => {
   //
   // the page should show "Thank you for the your submission"
   // and the submitted values, which we need to confirm
+  cy.contains(/Thank you for your submission/i).should('be.visible')
+  cy.contains('[data-city]', fields.city)
+  cy.contains('[data-value]', fields.value)
 })
 
 /**
