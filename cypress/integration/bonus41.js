@@ -5,22 +5,35 @@ it('spies on multipart/form-data submission', () => {
   // give the spy an alias "submit-form"
   //
   // visit the "form.html" page
+  cy.visit('/form.html')
   //
   // enter "Boston" into the city input field
+  cy.get('input[name=city]').type('Boston')
   // enter "1" into the value input field
+  cy.get('input[name=value]').type('1')
   //
+  cy.intercept('POST', '/submit-form').as('submit')
   // click on the submit button
+  cy.contains('button', /submit/i).click()
   //
   // the browser should navigate to /submit-form page
+  cy.location('pathname').should('eq', '/submit-form')
   //
   // the page should show "Thank you for the your submission"
   // and the submitted values
+  cy.contains(/Thank you for your submission/i).should('be.visible')
+  cy.contains('[data-city]', 'Boston')
+  cy.contains('[data-value]', '1')
   //
   // wait for the network intercept
   // get its request property
   // and transform it into an object of values
   // using parseMultiPartRequest callback
   // Verify the submitted values
+  cy.wait('@submit')
+    .its('request')
+    .then(parseMultiPartRequest)
+    .should('deep.equal', {city: 'Boston', value: '1'})
 })
 
 /**
