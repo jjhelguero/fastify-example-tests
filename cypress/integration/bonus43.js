@@ -12,11 +12,27 @@ it('makes a multipart/form-data cy.request using FormData', () => {
 
   // create a new instance of FormData
   // and set each field to upload
+  const formData = new FormData()
+  formData.set('city', fields.city)
+  formData.set('value', fields.value)
   //
   // make a POST request using https://on.cypress.io/request
   // to the endpoint "/submit-form" with the form data as the body
   // Note: cy.request encodes the multipart and sets
   // the content type with the boundary automatically
+  cy.request({
+    method: 'POST',
+    url: '/submit-form',
+    body: formData
+  }).its('body')
+    .then(Cypress.Buffer.from)
+    .invoke('toString', 'utf8')
+    .then((html) => {
+      cy.document().invoke('write', html)
+    })
+  cy.contains(/Thank you for your submission/i).should('be.visible')
+  cy.contains('[data-city]', fields.city)
+  cy.contains('[data-value]', fields.value)
   //
   // if you inspect the "cy.request" in the CommandLog
   // and DevTools console, it uses ArrayBuffer to send the request
