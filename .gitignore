@@ -3,3 +3,4 @@ cypress/screenshots/
 cypress/videos/
 response.json
 cypress/.DS_Store
+cypress/downloads/

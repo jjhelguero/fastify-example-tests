@@ -20,6 +20,7 @@ it('reloads the page until it shows Bananas', () => {
   cy.clock()
   cy.visit('/')
   // if it shows the fruit "Bananas", stop
+  //
   // else
   //   wait for 1 second for clarity
   //   reload the page

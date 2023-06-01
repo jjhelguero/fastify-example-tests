@@ -16,6 +16,9 @@ it('mocks the response by inspecting the request body', () => {
       return req.reply({ ...req.body, answer: req.body.a + req.body.b})
     }
   }).as('calculate')
+  // and reply with the stub:
+  // take the same object as the request body
+  // and compute the answer by adding a and b
   //
   // give the intercept alias "calculate"
   // https://on.cypress.io/as
