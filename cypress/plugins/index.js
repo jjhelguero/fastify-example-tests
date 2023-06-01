@@ -1,28 +1,18 @@
-/// <reference types="cypress" />
-// ***********************************************************
-// This example plugins/index.js can be used to load plugins
-//
-// You can change the location of this file or turn off loading
-// the plugins file with the 'pluginsFile' configuration option.
-//
-// You can read more here:
-// https://on.cypress.io/plugins-guide
-// ***********************************************************
+const axios = require('axios')
 
-// This function is called when a project is opened or re-opened (e.g. due to
-// the project's config changing)
+module.exports = async (on, config) => {
+  // you can fetch the list of all possible fruits
+  // displayed on the page "/fruits.html" by making API call
+  // to the /all-fruits endpoint. tip: use axios.get
+  // the returned response has the "data" property
+  // which is a list of objects. From each, grab the fruit name
+  // and form an array of names
+  // Tip: config has your resolved settings like baseUrl
+  //
+  // pass the fetched fruits to the specs via Cypress.env object
+  // same as if we started Cypress with "cypress run --env fruits=[Apples,...]"
+  // In the spec use Cypress.env('fruits') to retrieve them
 
-/**
- * @type {Cypress.PluginConfig}
- */
-// eslint-disable-next-line no-unused-vars
-module.exports = (on, config) => {
-  // `on` is used to hook into various events Cypress emits
-  // `config` is the resolved Cypress config
-  on('task', {
-    print(s){
-      console.log(s)
-      return null
-    }
-  })
+  // IMPORTANT: return the config object
+  return config
 }

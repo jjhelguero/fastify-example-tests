@@ -4,3 +4,6 @@ cypress/videos/
 response.json
 cypress/.DS_Store
 cypress/downloads/
+.DS_Store
+network-calls.json
+my-bunny.png
